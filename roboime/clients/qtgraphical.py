@@ -8,9 +8,10 @@ from collections import OrderedDict
 from ..utils.geom import Point
 
 #from . import stageview
-from ..base import World
+from ..base import World, Blue, Yellow
 #from ..interface.updater import SimVisionUpdater
 from ..interface import SimulationInterface, TxInterface
+from ..interface.controller import Controller
 from ..core import Dummy
 from ..core.skills import goto
 from ..core.skills import gotoavoid
@@ -419,6 +420,8 @@ class Intelligence(QtCore.QThread):
                                         kick_mapping_yellow=self.kick_mapping_yellow, kick_mapping_blue=self.kick_mapping_blue,
                                         transmission_ipaddr='127.0.0.1', transmission_port=9050)
         self.interface = SimulationInterface(self.world)
+        self.controller_blue = Controller(self.interface, Blue, self.world)
+        self.controller_yellow = Controller(self.interface, Yellow, self.world)
 
         dummy = ('(none)', Dummy())
         self.individual = lambda robot: OrderedDict([
@@ -471,8 +474,41 @@ class Intelligence(QtCore.QThread):
         self.current_individual_yellow.step()
 
         with self.world:
+            command_list_blue = {}
+            command_list_yellow = {}
+            for robot in self.world.team(Blue):
+                if robot.base_skill_class is not None:
+                    command_list_blue[robot.uid] = {"_class": robot.base_skill_class.__name__}
+                    for parameter_name in robot.base_skill_class.parameters:
+                        attribute = getattr(robot.skill, parameter_name)
+                        while callable(attribute):
+                            attribute = attribute()
+                        if attribute.__class__ != Point and hasattr(attribute, 'x') and hasattr(attribute, 'y'):
+                            attribute = Point(getattr(attribute, 'x'), getattr(attribute,'y'))
+                        if callable(attribute):
+                            command_list_blue[robot.uid][parameter_name] = attribute()
+                        else:
+                            command_list_blue[robot.uid][parameter_name] = attribute
+            for robot in self.world.team(Yellow):
+                if robot.base_skill_class is not None:
+                    command_list_yellow[robot.uid] = {"_class": robot.base_skill_class.__name__}
+                    for parameter_name in robot.base_skill_class.parameters:
+                        attribute = getattr(robot.skill, parameter_name)
+                        while callable(attribute):
+                            attribute = attribute()
+                        if attribute.__class__ != Point and hasattr(attribute, 'x') and hasattr(attribute, 'y'):
+                            attribute = Point(getattr(attribute, 'x'), getattr(attribute, 'y'))
+                        if callable(attribute):
+                            command_list_yellow[robot.uid][parameter_name] = attribute()
+                        else:
+                            command_list_yellow[robot.uid][parameter_name] = attribute
+            self.controller_blue.command_queue.put(command_list_blue)
+            self.controller_yellow.command_queue.put(command_list_yellow)
+
             if self.is_simulation:
                 self.interface.step()
+                self.controller_blue.step()
+                self.controller_yellow.step()
             else:
                 self.tx_interface.step()
 

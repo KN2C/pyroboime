@@ -17,7 +17,7 @@ from shapely import geometry
 
 from .utils import geom
 from .utils.mathutils import cos, sin
-from .utils.keydefaultdict import keydefaultdict
+from .utils import keydefaultdict
 from .communication.protos.referee_pb2 import SSL_Referee as ref
 
 
@@ -170,7 +170,7 @@ class Robot(geom.Point):
         # last skill, and tactic that was executed
         self.skill = None
         self.tactic = None
-
+        self.base_skill_class = None
         # some properties
         self.can_kick = True
 

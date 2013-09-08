@@ -9,7 +9,7 @@ from ..base import World
 from ..communication.network import unicast
 from ..communication import grsim
 from ..utils.mathutils import sin, cos
-from ..utils.keydefaultdict import keydefaultdict
+from ..utils import keydefaultdict
 from ..communication.rftransmission.vivatxrx import VIVATxRx
 
 class Commander(object):

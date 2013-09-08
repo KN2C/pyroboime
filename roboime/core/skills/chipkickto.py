@@ -9,7 +9,6 @@ from .. import Skill
 KICKPOWER = 5.0
 #KICKPOWER = 1.0 # check this value...
 
-
 def kick_power(distance, initial_speed=0.0, final_speed=0.0):
     mi = 0.4
     g = 9.81
@@ -22,6 +21,9 @@ class ChipKickTo(Skill):
     This class is an alternative to SampledKick.
     Meanwhile it's experimental, depending on the results it'll stay or not.
     """
+
+    parameters = ["lookpoint"]
+
     angle_error_tolerance = 0.5
     angle_tolerance = 0.5
     distance_tolerance = 0.11
@@ -51,6 +53,9 @@ class ChipKickTo(Skill):
         return (180 + delta) % 360 - 180
 
     def _step(self):
+        self.robot.base_skill_class = ChipKickTo
+
+    def _execute_step(self):
         #print 'blasdbflas'
         delta_angle = self.delta_angle()
 

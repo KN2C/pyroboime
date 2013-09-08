@@ -17,6 +17,8 @@ class Goto(Skill):
     regard to the position of any other objects on the field.
     """
 
+    parameters = ['target', 'final_target', 'angle', 'referential', 'avoid_collisions']
+
     # attraction coefificients
     attraction_factor = 6.0
     attraction_power = 2.3
@@ -146,6 +148,9 @@ class Goto(Skill):
             yield (repulsion_force, magnetic_force, delta_speed_force)
 
     def _step(self):
+        self.robot.base_skill_class = Goto
+
+    def _execute_step(self):
         r = self.robot
         t = self.target
         f_t = self.final_target

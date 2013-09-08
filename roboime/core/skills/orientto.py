@@ -11,6 +11,8 @@ class OrientTo(Skill):
     This skill will orient the robot arount a given point to look to another given point,
     """
 
+    parameters = ["lookpoint"]
+
     angle_tolerance = 0.5
     distance_tolerance = 0.11
     walkspeed = 0.1
@@ -38,7 +40,10 @@ class OrientTo(Skill):
         delta =  self.robot.angle - self.ball.angle_to_point(self.lookpoint)
         return (180 + delta) % 360 - 180
 
-    def _step(self):
+    def _step(step):
+        self.robot.base_skill_class = OrientTo
+
+    def _execute_step(self):
         delta_angle = self.delta_angle()
 
         self.angle_controller.input = delta_angle

@@ -22,6 +22,8 @@ class KickTo(Skill):
     This class is an alternative to SampledKick.
     Meanwhile it's experimental, depending on the results it'll stay or not.
     """
+    parameters = ["lookpoint", "force_kick"]
+
     #TODO: Change parameter back once we have real control.
     #angle_kick_min_error = 0.5
     angle_kick_min_error = 15
@@ -86,8 +88,11 @@ class KickTo(Skill):
     def delta_orientation(self):
         delta =  self.robot.angle - self.ball.angle_to_point(self.lookpoint)
         return (180 + delta) % 360 - 180
-        
+    
     def _step(self):
+        self.robot.base_skill_class = KickTo
+
+    def _execute_step(self):
         #print 'blasdbflas'
         delta_orientation = self.delta_orientation()
 

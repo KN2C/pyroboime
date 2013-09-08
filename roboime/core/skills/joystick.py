@@ -10,6 +10,8 @@ class Joystick(Skill):
     It uses the library 'pygame'.
     """
 
+    parameters = []
+
     speed_ratio = 2.0
     turbo_ratio = 2.0  # used to multiply speed_ratio
     angle_ratio = 180.0
@@ -117,6 +119,9 @@ class Joystick(Skill):
                 print 'ERROR: Joystick index not found.'
 
     def _step(self):
+        self.robot.base_skill_class = Joystick
+
+    def _execute_step(self):
         if self.joystick_found:
             # User did something
             for event in pygame.event.get():

@@ -67,6 +67,32 @@ class Interface(Process):
     #                co.send(self.actions)
     #            #co.send(actions)
 
+    def step_updaters(self):
+        for up in self.updaters:
+            if not up.queue.empty():
+                #uu = up.queue.get_nowait()
+                for _ in xrange(15):
+                    uu = up.queue.get()
+                    if up.queue.empty():
+                        break
+                for fi in reversed(self.filters):
+                    _uu = fi.filter_updates(uu)
+                    if _uu is not None:
+                        uu = _uu
+                for u in uu:
+                    u.apply(self.world)
+
+    def step_commanders(self):
+        for co in self.commanders:
+            actions = []
+            for r in co.team:
+                if r.action is not None:
+                    actions.append(r.action)
+            for fi in self.filters:
+                _actions = fi.filter_commands(actions)
+                if _actions is not None:
+                    actions = _actions
+
     def step(self):
         #print "I'm stepping the interface."
         # updates injection phase

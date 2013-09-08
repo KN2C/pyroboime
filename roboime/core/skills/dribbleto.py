@@ -11,6 +11,8 @@ class DribbleTo(Skill):
     TODO: extract the orientation stuff so that it becomes reusable.
     """
 
+    parameters = ["target", "lookpoint", "angle"]
+
     angle_error_tolerance = 0.5
     angle_tolerance = 0.5
     distance_tolerance = 0.3
@@ -37,6 +39,9 @@ class DribbleTo(Skill):
         return (180 + delta) % 360 - 180
 
     def _step(self):
+        self.robot.base_skill_class = DribbleTo
+
+    def _execute_step(self):
         # it has to dribble!
         self.robot.action.dribble = 1.0
         delta_angle = self.delta_angle()

@@ -22,7 +22,9 @@ class Update(object):
         raise NotImplemented
 
     def __str__(self):
-        return "Updated: %s UID=%s data=%s" % (type(self), hex(self.uid()), str(self.data))
+        return "Updated: %s UID=%s data=%s" % (type(self),
+                                               hex(self.uid()),
+                                               str(self.data))
 
 
 class BallUpdate(Update):
@@ -227,7 +229,7 @@ class RealVisionUpdater(VisionUpdater):
 class SimVisionUpdater(VisionUpdater):
 
     def __init__(self):
-        VisionUpdater.__init__(self, ('224.5.23.2', 11002))
+        VisionUpdater.__init__(self, ('224.5.23.2', 11008))
 
 
 class RefereeUpdater(Updater):
