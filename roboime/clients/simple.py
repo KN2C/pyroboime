@@ -1,8 +1,9 @@
 from time import time
 
-from ..base import World
+from ..base import World, Blue, Yellow
 #from ..interface.updater import SimVisionUpdater
 from ..interface import SimulationInterface
+from ..interface.controller import Controller
 #from ..core.skills import goto
 #from ..core.skills import gotoavoid
 #from ..core.skills import drivetoobject
@@ -17,7 +18,7 @@ from ..interface import SimulationInterface
 from ..core.plays import autoretaliate
 #from ..core.plays import halt
 from ..core.plays import stop
-#from ..utils.geom import Point
+from ..utils.geom import Point
 
 
 class Simple(object):
@@ -29,6 +30,8 @@ class Simple(object):
         self.world = World()
         #self.updater = SimVisionUpdater(self.world)
         self.interface = SimulationInterface(self.world)
+        self.controller_blue = Controller(self.interface, Blue, self.world)
+        self.controller_yellow = Controller(self.interface, Yellow, self.world)
         self.show_fps = show_fps
         self.show_perf = show_perf
         self.timestamp1 = time()
@@ -88,8 +91,8 @@ class Simple(object):
         #    self.plays['halt'] = halt.Halt(self.world.yellow_team)
         #if 'stop1' not in self.plays:
         #    self.plays['stop1'] = stop.Stop(self.world.blue_team)
-        if 'stop2' not in self.plays:
-            self.plays['stop2'] = stop.Stop(self.world.yellow_team)
+        #if 'stop2' not in self.plays:
+        #    self.plays['stop2'] = stop.Stop(self.world.yellow_team)
 
         for p in self.plays.itervalues():
             p.step()
@@ -97,6 +100,32 @@ class Simple(object):
             t.step()
         for s in self.skills.itervalues():
             s.step()
+
+        command_list_blue = {}
+        command_list_yellow = {}
+        for robot in self.world.team(Blue):
+            if robot.base_skill_class is not None:
+                command_list_blue[robot.uid] = {"_class": robot.base_skill_class.__name__}
+                for parameter_name in robot.base_skill_class.parameters:
+                    attribute = getattr(robot.skill, parameter_name)
+                    while callable(attribute):
+                        attribute = attribute()
+                    if hasattr(attribute, 'x') and hasattr(attribute, 'y') and attribute.__class__ != Point:
+                        attribute = Point(getattr(attribute, 'x'), getattr(attribute, 'y'))
+                    command_list_blue[robot.uid][parameter_name] = attribute
+
+        for robot in self.world.team(Yellow):
+            if robot.base_skill_class is not None:
+                command_list_yellow[robot.uid] = {"_class": robot.base_skill_class.__name__}
+                for parameter_name in robot.base_skill_class.parameters:
+                    attribute = getattr(robot.skill, parameter_name)
+                    while callable(attribute):
+                        attribute = attribute()
+                    if hasattr(attribute, 'x') and hasattr(attribute, 'y') and attribute.__class__ != Point:
+                        attribute = Point(getattr(attribute, 'x'), getattr(attribute, 'y'))
+                    command_list_yellow[robot.uid][parameter_name] = attribute
+        self.controller_blue.command_queue.put(command_list_blue)
+        self.controller_yellow.command_queue.put(command_list_yellow)
 
         #t1 = time()
         #if self.show_perf:
@@ -112,6 +141,8 @@ class Simple(object):
         #    self.canvas.draw_field(self.world)
         #t0 = time()
         self.interface.step()
+        self.controller_blue.step()
+        self.controller_yellow.step()
         #t1 = time()
         #print 'inter time:', t1 - t0
 

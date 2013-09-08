@@ -7,6 +7,27 @@ from ..core import Skill
 
 
 class Controller(object):
+    """
+    Receives a dictionary with a command from a queue
+    and executes the steps on its skills. Then, it
+    puts the executed actions in the interface queue.
+    >>> command_list = {
+    ...     0: {
+    ...         "_class": "OrientTo",
+    ...         "lookpoint": Point(0, 0)
+    ...     },
+    ...     1: {
+    ...         "_class": "Goto",
+    ...         "target": Point(2,0),
+    ...         "final_target": Point(2,0),
+    ...         "angle": 90,
+    ...         "referetial": None,
+    ...         "avoid_collisions": True
+    ...     }
+    ... }
+
+    """
+
 
     def __init__(self, interface, colour, world=None):
         if world is not None:
@@ -15,7 +36,7 @@ class Controller(object):
             self.world = World()
         self.interface = interface
         self.color = colour
-        self.skill_dict = keydefaultdict(lambda r: {
+        self.robot_skill_dict = keydefaultdict(lambda r: {
             name: getattr(skills, name)(r)
             for name
             in dir(skills)
@@ -26,19 +47,21 @@ class Controller(object):
 
     def step(self):
         command_list = self.command_queue.get()
-
+        
+        #u = self.interface.update_queue.get()
+        #u.apply(self.world)
         self.interface.step_updaters()
         for robot in self.team:
             if robot.uid in command_list:
                 robot_command = command_list[robot.uid]
-                skill = self.skill_dict[robot][robot_command["_class"]]
+                skill = self.robot_skill_dict[robot][robot_command["_class"]]
                 for attr, value in robot_command.iteritems():
                     if attr == "_class":
                         continue
                     setattr(skill, attr, value)
-                # Set skill parameter before stepping once we separate
                 skill._execute_step()
-        # Publish robot actions to the action queue
+            # Publish robot actions to the action queue
+            #self.interface.command_queue.put(robot.action)
         self.interface.step_commanders()
 
     @property

@@ -483,12 +483,10 @@ class Intelligence(QtCore.QThread):
                         attribute = getattr(robot.skill, parameter_name)
                         while callable(attribute):
                             attribute = attribute()
-                        if attribute.__class__ != Point and hasattr(attribute, 'x') and hasattr(attribute, 'y'):
-                            attribute = Point(getattr(attribute, 'x'), getattr(attribute,'y'))
-                        if callable(attribute):
-                            command_list_blue[robot.uid][parameter_name] = attribute()
-                        else:
-                            command_list_blue[robot.uid][parameter_name] = attribute
+                        if hasattr(attribute, 'x') and hasattr(attribute, 'y') and attribute.__class__ != Point:
+                            attribute = Point(getattr(attribute, 'x'), getattr(attribute, 'y'))
+                        command_list_blue[robot.uid][parameter_name] = attribute
+
             for robot in self.world.team(Yellow):
                 if robot.base_skill_class is not None:
                     command_list_yellow[robot.uid] = {"_class": robot.base_skill_class.__name__}
@@ -496,15 +494,13 @@ class Intelligence(QtCore.QThread):
                         attribute = getattr(robot.skill, parameter_name)
                         while callable(attribute):
                             attribute = attribute()
-                        if attribute.__class__ != Point and hasattr(attribute, 'x') and hasattr(attribute, 'y'):
+                        if hasattr(attribute, 'x') and hasattr(attribute, 'y') and attribute.__class__ != Point:
                             attribute = Point(getattr(attribute, 'x'), getattr(attribute, 'y'))
-                        if callable(attribute):
-                            command_list_yellow[robot.uid][parameter_name] = attribute()
-                        else:
-                            command_list_yellow[robot.uid][parameter_name] = attribute
+                        command_list_yellow[robot.uid][parameter_name] = attribute
+
             self.controller_blue.command_queue.put(command_list_blue)
             self.controller_yellow.command_queue.put(command_list_yellow)
-
+            
             if self.is_simulation:
                 self.interface.step()
                 self.controller_blue.step()
